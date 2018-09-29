@@ -1,0 +1,12 @@
+reunion
+- timezone: UTC+4
+- culmination: 12:15:49 UTC 8:15:49
+
+punta arenas
+- timezone UTC-3
+- sunrise: 05:12:10 UTC 8:12:10
+
+dunedin
+- timezone UTC+13
+- sunset: 21:28:27 UTC 8:28:27
+

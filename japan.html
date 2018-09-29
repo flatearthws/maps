@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="https://unpkg.com/topojson-client@3"></script>
+    </head>
+    <body>
+        <svg width="1000" height="1000"></svg>
+    </body>
+</html>
+
+<style>
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #888;
+  stroke-width: 1px;
+  stroke-opacity: 0.5;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  stroke: #000;
+  stroke-width: 5px;
+}
+
+.point {
+  fill: none;
+  stroke: #000;
+  stroke-width: 10px;
+}
+</style>
+
+<script>
+
+function getLineString(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getMultiPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPoint",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var projection = d3.geoOrthographic()
+    .rotate([195, -55])
+;
+
+var path = d3.geoPath()
+    .projection(projection);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path);
+
+function addRoute(r) {
+    svg.insert("path", ".route")
+        .datum(getLineString(r))
+        .attr("class", "route")
+        .attr("d", path);
+
+    svg.insert("path", ".point")
+        .datum(getMultiPoint(r))
+        .attr("class", "point")
+        .attr("d", path);
+}
+
+d3.json("common/50m.json", function(error, world) {
+    if (error) throw error;
+
+    svg.insert("path", ".graticule")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path);
+
+    svg.insert("path", ".graticule")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path);
+});
+
+d3.json("common/locations.json", function(error, l) {
+    if (error) throw error;
+    addRoute([l.bangkok, l.losangeles]);
+    // addRoute([l.tokyo, l.losangeles]);
+    // addRoute([l.losangeles, l.newyork]);
+    // addRoute([l.newyork, l.tokyo]);
+});
+
+
+</script>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Pannellum Video Demo</title>
+    <link rel="stylesheet" href="https://cdn.pannellum.org/2.4/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.pannellum.org/2.4/pannellum.js"></script>
+
+    <link href="https://vjs.zencdn.net/7.0.2/video-js.css" rel="stylesheet"
+      type="text/css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://vjs.zencdn.net/7.0.2/video.js"></script>
+    <script src="videojs-pannellum-plugin.js"></script>
+    <style type="text/css">
+        body {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<video id="panorama" class="video-js vjs-default-skin vjs-big-play-centered"
+  muted autoplay preload="auto" style="width:400px;height:600px;"
+  crossorigin="anonymous">
+    <source src="paris-en.mp4" type="video/mp4" />
+    <p class="vjs-no-js">
+        To view this video please enable JavaScript, and consider upgrading to
+        a web browser that <a href="http://videojs.com/html5-video-support/"
+        target="_blank">supports HTML5 video</a>
+    </p>
+</video>
+
+<script>
+var player = videojs('panorama', {
+    plugins: {
+        pannellum: {}
+    }
+}).ready(function() {
+    var player = this;
+    player.play();
+    // player.currentTime(10);
+    // console.log(player.currentTime());
+    // player.pause();
+    // setTimeout(function() {
+    //     player.pause();
+    //     player.currentTime(5);
+    // }, 500);
+});
+</script>
+
+</body>
+</html>

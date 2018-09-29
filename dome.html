@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="https://unpkg.com/topojson-client@3"></script>
+    </head>
+    <body>
+        <svg width="1080" height="1080"></svg>
+    </body>
+</html>
+
+<style>
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 3px;
+  stroke-opacity: 0.5;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.point {
+  fill: black;
+  stroke: #000;
+  stroke-width: 1px;
+}
+</style>
+
+<script>
+
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+// var projection = d3.geoOrthographic()
+//     .rotate([0, 90])
+// ;
+
+var projection = d3.geoAzimuthalEquidistant()
+    .scale(800)
+    .translate([width / 2, height / 2])
+    .rotate([-30,90])
+    .clipAngle(180 - 1e-3)
+    .precision(0.1);
+
+var path = d3.geoPath()
+    .projection(projection);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path);
+
+
+
+
+function getPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function draw(i, text) {
+    svg.insert("path", ".point")
+        .datum(getPoint(i))
+        .attr("class", "point")
+        .attr("d", path);
+
+    svg.insert("text")
+        .attr("class", "place-label")
+        .attr("transform", function(d) { return "translate(" + projection(i) + ")"; })
+        .attr("dy", ".35em")
+        .attr("x", "6")
+        .text(text);
+}
+
+d3.json("common/50m.json", function(error, world) {
+    if (error) throw error;
+
+    svg.insert("path", ".graticule")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path);
+
+    svg.insert("path", ".graticule")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path);
+
+    d3.json("dome.json", function(error, data) {
+        // console.log(data);
+        data.forEach(function(d) {
+            draw([d.long, d.lat], d.name);
+        });
+    });
+});
+</script>

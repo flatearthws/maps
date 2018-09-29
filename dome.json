@@ -1,0 +1,356 @@
+[
+  {
+    "name": "Anderson Dome",
+    "lat": -73.5,
+    "long": -93.9,
+    "elev": 1475
+  },
+  {
+    "name": "Dome Argus",
+    "lat": -81,
+    "long": 77,
+    "elev": 4000
+  },
+  {
+    "name": "Beacon Dome",
+    "lat": -86.1333333,
+    "long": -146.4166667,
+    "elev": 3010
+  },
+  {
+    "name": "Bennett Dome",
+    "lat": -71.8,
+    "long": -73.05,
+    "elev": 460
+  },
+  {
+    "name": "Bonnabeau Dome",
+    "lat": -73.5166667,
+    "long": -94.1666667,
+    "elev": ""
+  },
+  {
+    "name": "Burmester Dome",
+    "lat": -83.3666667,
+    "long": -50.9333333,
+    "elev": 2095
+  },
+  {
+    "name": "Burrage Dome",
+    "lat": -75.55,
+    "long": 161.0833333,
+    "elev": 840
+  },
+  {
+    "name": "Dome Charlie",
+    "lat": -75,
+    "long": 125,
+    "elev": 3200
+  },
+  {
+    "name": "Constellation Dome",
+    "lat": -81.1,
+    "long": 160.2166667,
+    "elev": 1330
+  },
+  {
+    "name": "Cowie Dome",
+    "lat": -86.4166667,
+    "long": -152,
+    "elev": ""
+  },
+  {
+    "name": "Davies Dome",
+    "lat": -63.8833333,
+    "long": -58.05,
+    "elev": 400
+  },
+  {
+    "name": "Dingle Dome",
+    "lat": -67.05,
+    "long": 48.9,
+    "elev": 400
+  },
+  {
+    "name": "Dingsør Dome",
+    "lat": -68.0166667,
+    "long": 67.7166667,
+    "elev": ""
+  },
+  {
+    "name": "Dobson Dome",
+    "lat": -64.0333333,
+    "long": -57.9166667,
+    "elev": 950
+  },
+  {
+    "name": "Dome",
+    "lat": -53.0833333,
+    "long": 73.5,
+    "elev": 2410
+  },
+  {
+    "name": "Domen Butte",
+    "lat": -72.7166667,
+    "long": -3.8333333,
+    "elev": ""
+  },
+  {
+    "name": "Dome Nunatak",
+    "lat": -77.0166667,
+    "long": 161.45,
+    "elev": 990
+  },
+  {
+    "name": "Frustration Dome",
+    "lat": -68,
+    "long": 64.55,
+    "elev": ""
+  },
+  {
+    "name": "Fuchs Dome",
+    "lat": -80.6,
+    "long": -27.8333333,
+    "elev": 1525
+  },
+  {
+    "name": "Fuller Dome",
+    "lat": -86.6333333,
+    "long": -156.3,
+    "elev": 2850
+  },
+  {
+    "name": "Half Dome Nunatak",
+    "lat": -82.45,
+    "long": 159.2333333,
+    "elev": ""
+  },
+  {
+    "name": "Hercules Dome",
+    "lat": -86,
+    "long": -105,
+    "elev": ""
+  },
+  {
+    "name": "Holman Dome",
+    "lat": -66.45,
+    "long": 98.9,
+    "elev": ""
+  },
+  {
+    "name": "Horteriset Dome",
+    "lat": -72.0833333,
+    "long": 12.3666667,
+    "elev": ""
+  },
+  {
+    "name": "Husky Dome",
+    "lat": -84.9,
+    "long": 176.2833333,
+    "elev": 3580
+  },
+  {
+    "name": "Jøkulhest Dome",
+    "lat": -71.8666667,
+    "long": 6.7,
+    "elev": ""
+  },
+  {
+    "name": "Kohler Dome",
+    "lat": -76.0333333,
+    "long": -134.2833333,
+    "elev": 2680
+  },
+  {
+    "name": "Lamykin Dome",
+    "lat": -67.45,
+    "long": 46.6666667,
+    "elev": 525
+  },
+  {
+    "name": "Law Dome",
+    "lat": -66.7333333,
+    "long": 112.8333333,
+    "elev": 1395
+  },
+  {
+    "name": "Lookout Dome",
+    "lat": -83.05,
+    "long": 156.45,
+    "elev": 2470
+  },
+  {
+    "name": "Maaske Dome",
+    "lat": -85.9666667,
+    "long": -144,
+    "elev": ""
+  },
+  {
+    "name": "Martin Dome",
+    "lat": -83.3,
+    "long": 157.2,
+    "elev": ""
+  },
+  {
+    "name": "Medea Dome",
+    "lat": -66.1833333,
+    "long": -62.05,
+    "elev": 350
+  },
+  {
+    "name": "Moore Dome",
+    "lat": -74.3333333,
+    "long": -111.3333333,
+    "elev": 700
+  },
+  {
+    "name": "Murray Dome",
+    "lat": -70.7,
+    "long": 67.2,
+    "elev": ""
+  },
+  {
+    "name": "Phleger Dome",
+    "lat": -85.8666667,
+    "long": -138.4,
+    "elev": 3315
+  },
+  {
+    "name": "Pionerskiy Dome",
+    "lat": -73.9833333,
+    "long": 73.1333333,
+    "elev": ""
+  },
+  {
+    "name": "Ricker Dome",
+    "lat": -82.0666667,
+    "long": 162.7166667,
+    "elev": 1720
+  },
+  {
+    "name": "Rotch Dome",
+    "lat": -62.6333333,
+    "long": -60.8833333,
+    "elev": ""
+  },
+  {
+    "name": "Roundel Dome",
+    "lat": -65.6333333,
+    "long": -63.25,
+    "elev": 1770
+  },
+  {
+    "name": "Shepherd Dome",
+    "lat": -74.8666667,
+    "long": -99.55,
+    "elev": ""
+  },
+  {
+    "name": "Siege Dome",
+    "lat": -84.2666667,
+    "long": 172.3666667,
+    "elev": ""
+  },
+  {
+    "name": "Snøhetta Dome",
+    "lat": -72.1833333,
+    "long": -2.8,
+    "elev": ""
+  },
+  {
+    "name": "Talos Dome",
+    "lat": -73,
+    "long": 158,
+    "elev": 2300
+  },
+  {
+    "name": "Taylor Dome",
+    "lat": -77.6666667,
+    "long": 157.6666667,
+    "elev": 2400
+  },
+  {
+    "name": "Tinsel Dome",
+    "lat": -63.7333333,
+    "long": -58.9166667,
+    "elev": 700
+  },
+  {
+    "name": "Titan Dome",
+    "lat": -88.5,
+    "long": 165,
+    "elev": 3100
+  },
+  {
+    "name": "Valkyrie Dome",
+    "lat": -77.5,
+    "long": 37.5,
+    "elev": 3700
+  },
+  {
+    "name": "Venture Dome",
+    "lat": -68.6,
+    "long": 62.2166667,
+    "elev": ""
+  },
+  {
+    "name": "Vrana Dome",
+    "lat": -69.8833333,
+    "long": 73.4666667,
+    "elev": ""
+  },
+  {
+    "name": "Wimple Dome",
+    "lat": -63.6333333,
+    "long": -58.85,
+    "elev": 725
+  },
+  {
+    "name": "Siple Dome",
+    "lat": -81.6666667,
+    "long": -148.8333333,
+    "elev": ""
+  },
+  {
+    "name": "Pearce Dome",
+    "lat": -71.3166667,
+    "long": -68.3333333,
+    "elev": 789
+  },
+  {
+    "name": "Arctowski Dome",
+    "lat": -62.1333333,
+    "long": -58.6333333,
+    "elev": ""
+  },
+  {
+    "name": "Hurd Dome",
+    "lat": -62.6833333,
+    "long": -60.3833333,
+    "elev": 375
+  },
+  {
+    "name": "Kraków Dome",
+    "lat": -62.1166667,
+    "long": -58.25,
+    "elev": ""
+  },
+  {
+    "name": "Warszawa Dome",
+    "lat": -62.2,
+    "long": -58.5833333,
+    "elev": ""
+  },
+  {
+    "name": "Allison Dome",
+    "lat": -73.5547222,
+    "long": 70.5997222,
+    "elev": ""
+  },
+  {
+    "name": "Dome Fuji",
+    "lat": -77.3169444,
+    "long": 39.7033333,
+    "elev": 3810
+  }
+]

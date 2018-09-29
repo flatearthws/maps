@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="//d3js.org/d3.v5.min.js"></script>
+        <script src="//d3js.org/d3-geo-projection.v2.min.js"></script>
+        <script src="//d3js.org/topojson.v2.min.js"></script>
+    </head>
+    <body>
+        <svg id="svg1" width="1080" height="600"></svg>
+        <svg id="svg2" width="1080" height="600"></svg>
+    </body>
+</html>
+
+<style>
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #ddd;
+  stroke-width: 2px;
+  stroke-opacity: .5;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  stroke: #000;
+  stroke-width: 5px;
+}
+
+.point {
+  fill: black;
+  stroke: #000;
+  stroke-width: 8px;
+}
+</style>
+
+<script>
+
+function getLineString(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getMultiPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPoint",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+// var a = 'dubai',
+//     b = 'perth',
+//     c = 'sydney';
+
+// var a = 'abu-dhabi',
+//     b = 'adelaide',
+//     c = 'sydney';
+
+// var a = 'johannesburg',
+//     b = 'perth',
+//     c = 'sydney';
+
+// var a = 'dallas',
+//     b = 'noumea',
+//     c = 'brisbane';
+
+// var a = 'singapore',
+//     b = 'adelaide',
+//     c = 'sydney';
+
+// var a = 'vancouver',
+//     b = 'honolulu',
+//     c = 'sydney';
+
+// var a = 'auckland',
+//     b = 'darwin',
+//     c = 'hong-kong';
+
+// var a = 'diego-garcia',
+//     b = 'banda-aceh',
+//     c = 'kadena';
+
+// var a = 'bangkok',
+//     b = 'denpasar',
+//     c = 'melbourne';
+
+// var a = 'sydney',
+//     b = 'alice-springs',
+//     c = 'kuala-lumpur';
+
+// var a = 'perth',
+//     b = 'denpasar',
+//     c = 'hong-kong';
+
+// var a = 'hong-kong',
+//     b = 'manila',
+//     c = 'melbourne';
+
+// var a = 'doha',
+//     b = 'chennai',
+//     c = 'denpasar';
+
+// var a = 'montevideo',
+//     b = 'fortaleza',
+//     c = 'madrid';
+
+// var a = 'saopaulo',
+//     b = 'lagos',
+//     c = 'dubai';
+
+// var a = 'sanfrancisco',
+//     b = 'moscow',
+//     c = 'dubai';
+
+var a = 'shanghai',
+    b = 'moscow',
+    c = 'munich';
+
+// svg1
+
+var svg1 = d3.select("#svg1"),
+    width = +svg1.attr("width"),
+    height = +svg1.attr("height");
+
+var projection1 = d3.geoOrthographic()
+    .rotate([0,0])
+;
+
+var path1 = d3.geoPath()
+    .projection(projection1);
+
+svg1.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path1);
+
+svg1.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg1.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg1.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path1);
+
+// svg2
+
+var svg2 = d3.select("#svg2"),
+    width = +svg2.attr("width"),
+    height = +svg2.attr("height");
+
+var projection2 = d3.geoAzimuthalEquidistant()
+    .rotate([0, -90])
+;
+
+var path2 = d3.geoPath()
+    .projection(projection2);
+
+svg2.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path2);
+
+svg2.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg2.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg2.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path2);
+
+function addRoute(a, b, c) {
+    svg1.insert("path", ".route")
+        .datum(getLineString([a, c]))
+        .attr("class", "route")
+        .attr("d", path1);
+
+    svg1.insert("path", ".point")
+        .datum(getMultiPoint([a, b, c]))
+        .attr("class", "point")
+        .attr("d", path1);
+
+
+    var flatline = getLineString([projection2(a), projection2(c)]);
+    var flatpath = d3.geoPath()(flatline);
+    console.log(flatpath);
+    svg2.insert("path", ".route")
+        .attr("class", "route noproj")
+        .attr("d", flatpath);
+
+    // svg2.insert("path", ".route")
+    //     .datum(getLineString([a, c]))
+    //     .attr("class", "route")
+    //     .attr("d", path2);
+
+    svg2.insert("path", ".point")
+        .datum(getMultiPoint([a, b, c]))
+        .attr("class", "point")
+        .attr("d", path2);
+}
+
+d3.json("common/50m.json").then(function(world) {
+    svg1.insert("path", ".graticule")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path1);
+
+    svg1.insert("path", ".graticule")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path1);
+
+    svg2.insert("path", ".graticule")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path2);
+
+    svg2.insert("path", ".graticule")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path2);
+});
+
+d3.json("common/locations.json").then(function(l) {
+    addRoute(l[a], l[b], l[c]);
+    var mid = d3.geoCentroid(getLineString([l[a], l[c]]));
+    projection1.rotate([-mid[0], -mid[1]]);
+    d3.selectAll('#svg1 path').attr('d', path1);
+
+
+});
+
+
+</script>

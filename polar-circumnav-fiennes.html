@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="https://unpkg.com/topojson-client@3"></script>
+    </head>
+    <body>
+        <svg id="svg1" width="1080" height="600"></svg>
+        <svg id="svg2" width="1080" height="600"></svg>
+    </body>
+</html>
+
+<style>
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #ddd;
+  stroke-width: 2px;
+  stroke-opacity: 1;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  stroke: #000;
+  stroke-width: 8px;
+}
+
+.point {
+  fill: black;
+  stroke: #000;
+  stroke-width: 15px;
+}
+</style>
+
+<script>
+
+function getLineString(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getMultiPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPoint",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+
+var centerlon1 = 5;
+var centerlat1 = -80;
+var centerlon2 = centerlon1 > 0 ? centerlon1 - 180 : centerlon1 + 180;
+var centerlat2 = -centerlat1;
+console.log([centerlon2, centerlat2]);
+
+// svg1
+
+var svg1 = d3.select("#svg1"),
+    width = +svg1.attr("width"),
+    height = +svg1.attr("height");
+
+var projection1 = d3.geoOrthographic()
+    .rotate([centerlon1, centerlat1])
+;
+
+var path1 = d3.geoPath()
+    .projection(projection1);
+
+svg1.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path1);
+
+svg1.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg1.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg1.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path1);
+
+// svg2
+
+var svg2 = d3.select("#svg2"),
+    width = +svg2.attr("width"),
+    height = +svg2.attr("height");
+
+var projection2 = d3.geoOrthographic()
+    .rotate([centerlon2, centerlat2])
+;
+
+var path2 = d3.geoPath()
+    .projection(projection2);
+
+svg2.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path2);
+
+svg2.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg2.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg2.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path2);
+
+function addRoute(r) {
+    svg1.insert("path", ".route")
+        .datum(getLineString(r))
+        .attr("class", "route")
+        .attr("d", path1);
+
+    svg1.insert("path", ".point")
+        .datum(getMultiPoint(r))
+        .attr("class", "point")
+        .attr("d", path1);
+
+    svg2.insert("path", ".route")
+        .datum(getLineString(r))
+        .attr("class", "route")
+        .attr("d", path2);
+
+    svg2.insert("path", ".point")
+        .datum(getMultiPoint(r))
+        .attr("class", "point")
+        .attr("d", path2);
+}
+
+d3.json("common/50m.json", function(error, world) {
+    if (error) throw error;
+
+    svg1.insert("path", ".graticule")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path1);
+
+    svg1.insert("path", ".graticule")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path1);
+
+    svg2.insert("path", ".graticule")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path2);
+
+    svg2.insert("path", ".graticule")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path2);
+});
+
+d3.json("common/locations.json", function(error, l) {
+    if (error) throw error;
+    addRoute([l.greenwich, l.capetown, l.southpole, l.auckland, l.sydney, l.losangeles, l.vancouver, l.yukonriver, l.northpole, l.greenwich]);
+});
+
+
+</script>

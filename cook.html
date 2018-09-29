@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="https://unpkg.com/topojson-client@3"></script>
+        <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+    </head>
+    <body>
+        <!-- <svg width="640" height="640"></svg> -->
+        <svg width="1000" height="1000"></svg>
+        <div id="c"></div>
+    </body>
+</html>
+
+<style>
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1px;
+  stroke-opacity: 0.5;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  /*stroke: black;*/
+  stroke: rgba(0,0,0,.5);
+  stroke-width: 2px;
+}
+
+.point {
+  fill: none;
+  stroke: #000;
+  stroke-width: 10px;
+}
+</style>
+
+<script>
+
+function calculateLength(lineString) {
+    if (lineString.length<2)
+        return 0;
+    var result = 0;
+    for (var i=1; i<lineString.length; i++)
+        result += distance(lineString[i-1][0],lineString[i-1][1],
+                           lineString[i  ][0],lineString[i  ][1]);
+    return result;
+}
+
+function distance(λ1,φ1,λ2,φ2) {
+    var R = 6371000;
+    Δλ = (λ2 - λ1) * Math.PI / 180;
+    φ1 = φ1 * Math.PI / 180;
+    φ2 = φ2 * Math.PI / 180;
+    var x = Δλ * Math.cos((φ1+φ2)/2);
+    var y = (φ2-φ1);
+    var d = Math.sqrt(x*x + y*y);
+    return R * d;
+};
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var projection = d3.geoAzimuthalEquidistant()
+    .scale(100)
+    .translate([width / 2, height / 2])
+    .rotate([45,55,-50])
+    .clipAngle(180 - 1e-3)
+    .precision(0.1);
+// var projection = d3.geoMercator();
+
+var path = d3.geoPath()
+    .projection(projection);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path);
+
+d3.json("common/50m.json", function(error, world) {
+    if (error) throw error;
+
+    svg.insert("path", ".graticule")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path);
+
+    svg.insert("path", ".graticule")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path);
+});
+
+d3.json("cook-fixed.json", function(error, l) {
+    if (error) throw error;
+    svg.insert("path", ".route")
+        .datum(l)
+        .attr("class", "route")
+        .attr("d", path);
+    // alert(calculateLength(l.features[0].geometry.coordinates));
+    alert(turf.length(l));
+});
+
+// 272640912 m
+</script>

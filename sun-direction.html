@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css?family=Neucha" rel="stylesheet">
+<style>
+body {
+  background: #e3e2db;
+  margin: 0;
+  padding: 0;
+}
+#projection-menu {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  /*display: none;*/
+}
+.stroke {
+  fill: none;
+  stroke: #000;
+  /*stroke: transparent;*/
+  stroke-width: 1px;
+}
+.fill {
+  /*fill: #1795d1;*/
+  /*fill: none;*/
+}
+#sphere {
+  /*fill: #1795d1;*/
+  fill: white;
+  /*fill: transparent;*/
+}
+.graticule {
+  fill: none;
+  stroke: #ddd;
+  stroke-width: 1px;
+  stroke-opacity: 1;
+}
+.land {
+  fill: #fff;
+}
+.ocean {
+  fill: #1795d1;
+  /*fill: white;*/
+}
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: .5px;
+}
+.route {
+  fill: none;
+  stroke: #555;
+  stroke-width: 2px;
+}
+
+.point {
+  fill: #555;
+  stroke: #555;
+  stroke-width: 4px;
+}
+
+.label {
+  text-align: center;
+  text-anchor: middle;
+  font-size: 2em;
+  font-family: Neucha;
+  font-feature-settings: 'zero' off;
+  fill: orange;
+}
+.sun {
+  fill: orange;
+  stroke: orange;
+  stroke-width: 15px;
+}
+.night {
+  /*stroke: steelblue;*/
+  fill: black;
+  fill-opacity: .6;
+}
+
+.direction {
+  fill: none;
+  /*stroke: #555;*/
+  /*stroke: hsl(0,0%,30%);*/
+  stroke-width: 3px;
+}
+
+.direction-arrow {
+  /*fill: hsl(0,0%,30%);*/
+  /*fill: #555;*/
+}
+
+.direction-point {
+  fill: black;
+  stroke: none;
+}
+</style>
+<select id="projection-menu"></select>
+<script src="//d3js.org/d3.v5.min.js"></script>
+<script src="//d3js.org/d3-geo-projection.v2.min.js"></script>
+<script src="//d3js.org/topojson.v2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/moment-with-locales.min.js"></script>
+<script>
+
+// var observer = [-21.933333, 64.133333];
+var observers = {};
+
+// moment.locale('id');
+function addRoute(r) {
+    svg.insert("path", ".route")
+        .datum(getLineString(r))
+        .attr("class", "route")
+        .attr("d", path);
+
+    svg.insert("path", ".point")
+        .datum(getMultiPoint(r))
+        .attr("class", "point")
+        .attr("d", path);
+}
+
+function getLineString(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getMultiPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPoint",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+var
+    width = 540,
+    height = 540
+;
+
+var π = Math.PI,
+    radians = π / 180,
+    degrees = 180 / π;
+
+// var date = moment("June 20, 2019 22:00:00 UTC");
+// var text = "June Solstice";
+
+// var date = moment("September 21, 2019 22:00:00 UTC");
+// var text = "September Equinox"
+
+var date = moment("December 20, 2019 22:00:00 UTC");
+var text = "December Solstice"
+
+var transduration = 1000;
+var i = 0;
+var limit = 3200;
+var redrawinterval = 50;
+// var limit = 0;
+
+// var projection = d3.geoOrthographic()
+//   .clipAngle(90)
+//   .rotate([-135, 45])
+//   .center([0, 0]);
+// ;
+
+var projection = d3.geoAzimuthalEquidistant()
+  .rotate([0, -90])
+  .center([0, 0])
+  .translate([270, 270])
+;
+
+var path = d3.geoPath().projection(projection);
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+// var background = svg.append("rect")
+//   .attr("width", width)
+//   .attr("height", height)
+//   .attr("fill", "#eee");
+var defs = svg.append("defs")
+defs.append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+defs.append("clipPath")
+    .attr("id", "clip")
+    .append("use")
+    .attr("xlink:href", "#sphere");
+
+var marker = defs.append('marker')
+    .attr("id", "arrow")
+    .attr("markerWidth", "6")
+    .attr("markerHeight", "6")
+    .attr("refX", "0")
+    .attr("refY", "2")
+    .attr("orient", "auto")
+    .attr("markerUnits", "strokeWidth");
+marker.append('path')
+    .attr("class", "direction-arrow")
+    .attr("d", "M0,0 L0,4 L4,2 z");
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+
+var circlenight = d3.geoCircle()
+    .radius(90);
+
+d3.json("common/geojson/ne_110m_wgs84_bounding_box.geojson").then(function(world) {
+  svg.insert("path")
+      .datum(world)
+      .attr("class", "bbox")
+      .attr("d", path);
+  d3.json("common/geojson/ne_110m_ocean.geojson").then(function(world) {
+    svg.insert("path")
+        .datum(world)
+        .attr("class", "ocean")
+        .attr("d", path);
+    d3.json("common/geojson/ne_110m_land.geojson").then(function(world) {
+      svg.insert("path")
+          .datum(world)
+          .attr("class", "land")
+          .attr("d", path);
+
+      var night = svg.append("path")
+          .attr("class", "night")
+          .attr("d", path);
+
+      var sun = svg.append("path")
+          .attr("class", "sun")
+          .attr("d", path);
+
+      var label = svg.insert("text")
+          .attr("class", "label")
+          .attr("y", height - 140)
+          .attr("dy", "2em")
+          .attr("x", width / 2)
+          .text(text)
+      ;
+
+      d3.json("sun-direction-observers.json").then(function(world) {
+        Object.keys(world).forEach(function(key) {
+          var value = world[key];
+
+          var marker = defs.append('marker')
+              .attr("id", "arrow-" + key)
+              .attr("markerWidth", "6")
+              .attr("markerHeight", "6")
+              .attr("refX", "0")
+              .attr("refY", "2")
+              .attr("orient", "auto")
+              .attr("markerUnits", "strokeWidth");
+          marker.append('path')
+              .attr("class", "direction-arrow")
+              .attr("d", "M0,0 L0,4 L4,2 z");
+
+          // var point = defs.append('marker')
+          //     .attr("id", "point-" + key)
+          //     .attr("markerWidth", "3")
+          //     .attr("markerHeight", "3")
+          //     .attr("refX", "1.5")
+          //     .attr("refY", "1.5")
+          //     .attr("orient", "auto")
+          //     .attr("markerUnits", "strokeWidth");
+          // point.append('circle')
+          //     .attr("class", "direction-point")
+          //     .attr("cx", "1.5")
+          //     .attr("cy", "1.5")
+          //     .attr("r", "1.5");
+
+          var line = svg.insert("path", ".sun")
+              .attr("class", "direction")
+              .attr("marker-end", "url(#arrow-"+key+")")
+              .attr("marker-start", "url(#point-"+key+")")
+              .style('opacity', 0);
+
+          var point = svg.insert("path", ".sun")
+              .attr("class", "direction-point")
+              .datum(getPoint(value))
+              .attr('d', path);
+
+          observers[key] = {
+            "marker": marker,
+            "point": point,
+            "line": line,
+            "location": value
+          };
+        });
+
+        var interval;
+        redraw();
+        function redraw() {
+          var solarposition = solarPosition(date.toDate());
+          night.datum(circlenight.center(antipode(solarposition))).attr("d", path);
+          sun.datum(getPoint(solarposition)).attr("d", path);
+          processObservers(solarposition);
+          date.add(1, 'minute');
+          i++;
+          if (i > limit) {
+            clearInterval(interval);
+          }
+        }
+
+        setTimeout(function() {
+          interval = setInterval(redraw, redrawinterval);
+        }, 5000);
+      });
+    });
+  });
+});
+
+var anglethresholdlow = 70;
+var anglethresholdhigh = 85;
+
+function processObservers(solarposition) {
+  Object.keys(observers).forEach(function(key) {
+    var observer = observers[key];
+    var solardir = solardirection(solarposition, observer.location);
+    var angle = solardir[1];
+    var FEdirection = flatEarthDirection(solardir[0], observer.location);
+    var flatobserver = projection(observer.location);
+
+    // var diff = Math.abs(solardir[0] - FEdirection * radians);
+    // if (diff > 180) {
+    //   diff = 360 - diff;
+    // }
+    // var saturation = Math.round(diff / 180 * 100);
+
+    FEdirection = -FEdirection + 90;
+    FEdirection = (FEdirection + 720) % 360;
+    var dx = Math.cos(FEdirection * radians) * 20;
+    var dy = Math.sin(FEdirection * radians) * 20;
+    var FEline = getLineString([flatobserver, [flatobserver[0]+dx, flatobserver[1]-dy]]);
+    var FEpath = d3.geoPath()(FEline);
+    observer.line.attr("d", FEpath);
+
+    var sol = projection(solarposition);
+    var soldir = Math.atan2(sol[1]-flatobserver[1], sol[0]-flatobserver[0]) * degrees;
+    // soldir = -soldir + 90;
+    soldir = -soldir;
+    soldir = (soldir + 720) % 360;
+
+    var diff = Math.abs(soldir - FEdirection);
+    if (diff > 180) {
+      diff = 360 - diff;
+    }
+
+    // var saturation = Math.round(diff / 180 * 100);
+    // observer.line.attr('stroke', 'hsl(0,'+saturation+'%,50%)');
+    // observer.marker.attr('fill', 'hsl(0,'+saturation+'%,50%)');
+
+    // var red = diff / 180;
+    // red = Math.floor(d3.easeExpOut(red) * 255);
+    // observer.line.attr('stroke', 'rgb('+red+',0,0)');
+    // observer.marker.attr('fill', 'rgb('+red+',0,0)');
+
+    var l = diff / 180;
+    l = Math.floor(d3.easeExpOut(l) * 50);
+    observer.line.attr('stroke', 'hsl(20,100%,'+l+'%)');
+    observer.marker.attr('fill', 'hsl(20,100%,'+l+'%)');
+
+
+
+
+    // if (diff <= 10) {
+    //   observer.line.attr('stroke', 'green');
+    //   observer.marker.attr('fill', 'green');
+    // } else if (diff <= 30) {
+    //   observer.line.attr('stroke', 'yellow');
+    //   observer.marker.attr('fill', 'yellow');
+    // } else {
+    //   observer.line.attr('stroke', 'red');
+    //   observer.marker.attr('fill', 'red');
+    // }
+
+
+    // if (key == 'anchorage') {
+      // console.log('hsl(0,'+saturation+'%,30%)');
+      // console.log([soldir, FEdirection]);
+    // }
+
+    if (angle < 0) {
+      observer.line.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", "0");
+      // observer.line.style("opacity", "0");
+      // observer.marker.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", "0");
+      // observer.point.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", "0");
+    // } else if (angle > anglethresholdhigh) {
+    //   observer.line.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", "0");
+    //   observer.marker.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", "0");
+    // } else if (angle > anglethresholdlow) {
+    //   var opacity = (-angle + 90) / (anglethresholdhigh-anglethresholdlow);
+    //   observer.line.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", opacity);
+    //   observer.marker.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", opacity);
+    } else {
+      observer.line.interrupt().transition().duration(transduration).ease(d3.easeLinear).style("opacity", "1");
+      // observer.line.style("opacity", "1");
+      // observer.marker.interrupt().transition().duration(1000).ease(d3.easeLinear).style("opacity", "1");
+      // observer.point.interrupt().transition().duration(1000).ease(d3.easeLinear).style("opacity", "1");
+    }
+
+  });
+
+
+}
+
+
+// function solarAz(solarPosition, observerPosition) {
+//   var theta = solarPosition[1] * radians;
+//   var hourAngle = solarPosition[0] * radians;
+//   var longitude = observerPosition[0] * radians;
+//   var latitude = observerPosition[1] * radians;
+//   var csz = Math.sin(latitude) * Math.sin(theta) + Math.cos(latitude) * Math.cos(theta) * Math.cos(hourAngle);
+//   if (csz > 1.0) {
+//     csz = 1.0
+//   } else if (csz < -1.0) { 
+//     csz = -1.0
+//   }
+//   var zenith = Math.acos(csz);
+//   var azDenom = Math.cos(latitude) * Math.sin(zenith);
+
+//   if (Math.abs(azDenom) > 0.001) {
+//     azRad = (( Math.sin(latitude) * Math.cos(zenith) ) - Math.sin(theta)) / azDenom;
+//     if (Math.abs(azRad) > 1.0) {
+//       if (azRad < 0) {
+//         azRad = -1.0;
+//       } else {
+//         azRad = 1.0;
+//       }
+//     }
+//     var azimuth = 180.0 - radToDeg(Math.acos(azRad))
+//     if (hourAngle > 0.0) {
+//       azimuth = -azimuth
+//     }
+//   } else {
+//     if (latitude > 0.0) {
+//       azimuth = 180.0
+//     } else { 
+//       azimuth = 0.0
+//     }
+//   }
+//   if (azimuth < 0.0) {
+//     azimuth += 360.0
+//   }
+// }
+
+
+// function solarAltAz(solarPosition, observerPosition) {
+//   var rightAscension = solarPosition[0] * radians;
+//   var declination = solarPosition[1] * radians;
+//   var longitude = observerPosition[0] * radians;
+//   var latitude = observerPosition[1] * radians;
+
+//   var adjacent = Math.cos(rightAscension)*Math.sin(latitude) - Math.tan(declination) * Math.cos(latitude);
+//   var azimuth = Math.atan2(Math.sin(rightAscension), adjacent);
+//   var altitude = Math.asin(Math.sin(latitude)*Math.sin(declination) + Math.cos(latitude)*Math.cos(declination)*Math.cos(rightAscension));
+//   // var azimuth = Math.acos((Math.sin(declination) * Math.cos(latitude)- Math.cos(declination)*Math.sin(latitude)*Math.cos(rightAscension)) / Math.cos(altitude));
+//   return [azimuth * degrees, altitude * degrees];
+// }
+
+function flatEarthDirection(direction, observerPosition) {
+  var dir = direction - observerPosition[0];
+  return (dir + 360) % 360;
+}
+
+
+function solardirection(solarPosition, observerPosition) {
+  var lng_1 = observerPosition[0] * radians;
+  var lat_1 = observerPosition[1] * radians;
+  var lng_2 = solarPosition[0] * radians;
+  var lat_2 = solarPosition[1] * radians;
+
+  var direction = Math.atan2(
+    Math.sin(lng_2 - lng_1),
+    (Math.cos(lat_1) * Math.tan(lat_2) - Math.sin(lat_1) * Math.cos(lng_2 - lng_1))
+  );
+  direction = (direction * degrees + 360) % 360;
+  var angle = 90 - d3.geoDistance(solarPosition, observerPosition) * degrees;
+  return [direction, angle];
+}
+
+function antipode(position) {
+  return [position[0] + 180, -position[1]];
+}
+
+function solarPosition(time) {
+  var centuries = (time - Date.UTC(2000, 0, 1, 12)) / 864e5 / 36525, // since J2000
+      longitude = (d3.utcDay.floor(time) - time) / 864e5 * 360 - 180;
+  return [
+    longitude - equationOfTime(centuries) * degrees,
+    solarDeclination(centuries) * degrees
+  ];
+}
+
+// Equations based on NOAA’s Solar Calculator; all angles in radians.
+// http://www.esrl.noaa.gov/gmd/grad/solcalc/
+
+function equationOfTime(centuries) {
+  var e = eccentricityEarthOrbit(centuries),
+      m = solarGeometricMeanAnomaly(centuries),
+      l = solarGeometricMeanLongitude(centuries),
+      y = Math.tan(obliquityCorrection(centuries) / 2);
+  y *= y;
+  return y * Math.sin(2 * l)
+      - 2 * e * Math.sin(m)
+      + 4 * e * y * Math.sin(m) * Math.cos(2 * l)
+      - 0.5 * y * y * Math.sin(4 * l)
+      - 1.25 * e * e * Math.sin(2 * m);
+}
+
+function solarDeclination(centuries) {
+  return Math.asin(Math.sin(obliquityCorrection(centuries)) * Math.sin(solarApparentLongitude(centuries)));
+}
+
+function solarApparentLongitude(centuries) {
+  return solarTrueLongitude(centuries) - (0.00569 + 0.00478 * Math.sin((125.04 - 1934.136 * centuries) * radians)) * radians;
+}
+
+function solarTrueLongitude(centuries) {
+  return solarGeometricMeanLongitude(centuries) + solarEquationOfCenter(centuries);
+}
+
+function solarGeometricMeanAnomaly(centuries) {
+  return (357.52911 + centuries * (35999.05029 - 0.0001537 * centuries)) * radians;
+}
+
+function solarGeometricMeanLongitude(centuries) {
+  var l = (280.46646 + centuries * (36000.76983 + centuries * 0.0003032)) % 360;
+  return (l < 0 ? l + 360 : l) / 180 * π;
+}
+
+function solarEquationOfCenter(centuries) {
+  var m = solarGeometricMeanAnomaly(centuries);
+  return (Math.sin(m) * (1.914602 - centuries * (0.004817 + 0.000014 * centuries))
+      + Math.sin(m + m) * (0.019993 - 0.000101 * centuries)
+      + Math.sin(m + m + m) * 0.000289) * radians;
+}
+
+function obliquityCorrection(centuries) {
+  return meanObliquityOfEcliptic(centuries) + 0.00256 * Math.cos((125.04 - 1934.136 * centuries) * radians) * radians;
+}
+
+function meanObliquityOfEcliptic(centuries) {
+  return (23 + (26 + (21.448 - centuries * (46.8150 + centuries * (0.00059 - centuries * 0.001813))) / 60) / 60) * radians;
+}
+
+function eccentricityEarthOrbit(centuries) {
+  return 0.016708634 - centuries * (0.000042037 + 0.0000001267 * centuries);
+}
+
+</script>

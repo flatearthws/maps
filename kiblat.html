@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="https://unpkg.com/topojson-client@3"></script>
+    </head>
+    <body>
+        <svg width="640" height="640"></svg>
+    </body>
+</html>
+
+<style>
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #888;
+  stroke-width: 1px;
+  stroke-opacity: 0.5;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  stroke: #000;
+  stroke-width: 5px;
+}
+
+.point {
+  fill: none;
+  stroke: #000;
+  stroke-width: 10px;
+}
+</style>
+
+<script>
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var projection = d3.geoAzimuthalEquidistant()
+    .scale(100)
+    .translate([width / 2, height / 2])
+    .rotate([0,-90])
+    .clipAngle(180 - 1e-3)
+    .precision(0.1);
+
+var path = d3.geoPath()
+    .projection(projection);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg.append("path")
+    .datum(function() {
+        return d3.geoGraticule()
+            .stepMinor([30,30])
+            .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path);
+
+d3.json("common/ne/ne_110m_admin_0_countries-edited-colored.geojson", function(error, world) {
+    if (error) throw error;
+    world.features.forEach(function (i) {
+        // console.log(i);
+        svg.insert("path", ".land")
+            .datum(i)
+            .attr("class", "land")
+            .attr("d", path);
+    });
+});
+
+
+</script>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<!-- source: http://bl.ocks.org/mbostock/4597134 -->
+<meta charset="utf-8">
+<style>
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1px;
+  stroke-opacity: 0.5;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  stroke: rgba(0,0,0,.5);
+  stroke-width: 2px;
+}
+
+.point {
+  fill: none;
+  stroke: #000;
+  stroke-width: 10px;
+}
+
+
+.night {
+  /*stroke: steelblue;*/
+  fill: black;
+  fill-opacity: .5;
+}
+
+.day {
+  /*stroke: yellow;*/
+  fill: transparent;
+  fill-opacity: .3;
+}
+
+.city {
+  fill: black;
+  stroke: #000;
+  stroke-width: 1px;
+}
+
+.sun {
+  fill: orange;
+  stroke: orange;
+  stroke-width: 1px;
+}
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 960,
+    height = 960;
+
+var π = Math.PI,
+    radians = π / 180,
+    degrees = 180 / π;
+
+// var projection = d3.geo.equirectangular()
+//     .translate([width / 2, height / 2])
+//     .scale(153)
+//     .precision(.1);
+
+var projection = d3.geo.azimuthalEquidistant()
+    .scale(100)
+    .translate([width / 2, height / 2])
+    .rotate([0,-90])
+    .clipAngle(180 - 1e-3)
+    .precision(0.1);
+
+// var projection = d3.geo.orthographic()
+//     .rotate([0, 90])
+//     .scale(250)
+//     .translate([width / 2, height / 2])
+//     .clipAngle(90);
+
+var circlenight = d3.geo.circle()
+    .angle(90);
+
+var circleday = d3.geo.circle()
+    .angle(90);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg.append("path")
+    .datum(function() {
+        return d3.geo.graticule()
+            // .stepMinor([30,30])
+            // .extentMinor([[-180,-90], [180,90]])
+        ();
+    })
+    .attr("class", "graticule")
+    .attr("d", path);
+
+function getPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+
+
+d3.json("/common/50m.json", function(error, world) {
+  if (error) throw error;
+
+  svg.append("path")
+      .datum(topojson.feature(world, world.objects.land))
+      .attr("class", "land")
+      .attr("d", path);
+
+  var night = svg.append("path")
+      .attr("class", "night")
+      .attr("d", path);
+
+  var day = svg.append("path")
+      .attr("class", "day")
+      .attr("d", path);
+
+  redraw();
+  // setInterval(redraw, 1000);
+
+  function redraw() {
+    // var date = new Date(2018, 12, 22, 0, 40); // capetown-auckland
+    // var date = new Date(2018, 12, 22, 4, 45); // saopaulo-perth
+    // var date = new Date(2018, 12, 22, 16, 0); // melbourne-buenos-aires-punta-arenas
+
+    // var date = new Date("December 21, 2018 16:53:30 UTC"); // wellington, christchurch, johannesburg, capetown
+    // var date = new Date("December 21, 2018 17:05 UTC"); // wellington, christchurch, johannesburg, capetown
+    // var date = new Date("December 21, 2018 21:30 UTC"); // saopaulo-perth
+    var date = new Date("December 22, 2018 08:50 UTC"); // melbourne-buenos-aires-punta-arenas
+    // var date = new Date("December 22, 2018 09:45 UTC"); // melbourne-buenos-aires-punta-arenas
+    // var date = new Date("December 22, 2018 08:22 UTC"); // punta arenas - dunedin
+
+    // var date = new Date(2018, 12, 22, 15, 25); // melbourne-buenos-aires-punta-arenas
+    var solarposition = solarPosition(date);
+    // day.datum(circleday.origin((solarposition))).attr("d", path);
+    night.datum(circlenight.origin(antipode(solarposition))).attr("d", path);
+
+    svg.insert("path", ".sun")
+        .datum(getPoint(solarposition))
+        .attr("class", "sun")
+        .attr("d", path);
+  }
+
+
+  d3.json("common/locations.json", function(error, l) {
+      if (error) throw error;
+      svg.insert("path", ".city")
+          .datum(getPoint(l.auckland))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.johannesburg))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.buenosaires))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.sydney))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.perth))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.santiago))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.saopaulo))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.capetown))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.christchurch))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.puntaarenas))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.melbourne))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.adelaide))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.wellington))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.bloemfontein))
+          .attr("class", "city")
+          .attr("d", path);
+      svg.insert("path", ".city")
+          .datum(getPoint(l.dunedin))
+          .attr("class", "city")
+          .attr("d", path);
+  });
+
+});
+
+d3.select(self.frameElement).style("height", height + "px");
+
+function antipode(position) {
+  return [position[0] + 180, -position[1]];
+}
+
+function solarPosition(time) {
+  var centuries = (time - Date.UTC(2000, 0, 1, 12)) / 864e5 / 36525, // since J2000
+      longitude = (d3.time.day.utc.floor(time) - time) / 864e5 * 360 - 180;
+  return [
+    longitude - equationOfTime(centuries) * degrees,
+    solarDeclination(centuries) * degrees
+  ];
+}
+
+// Equations based on NOAA’s Solar Calculator; all angles in radians.
+// http://www.esrl.noaa.gov/gmd/grad/solcalc/
+
+function equationOfTime(centuries) {
+  var e = eccentricityEarthOrbit(centuries),
+      m = solarGeometricMeanAnomaly(centuries),
+      l = solarGeometricMeanLongitude(centuries),
+      y = Math.tan(obliquityCorrection(centuries) / 2);
+  y *= y;
+  return y * Math.sin(2 * l)
+      - 2 * e * Math.sin(m)
+      + 4 * e * y * Math.sin(m) * Math.cos(2 * l)
+      - 0.5 * y * y * Math.sin(4 * l)
+      - 1.25 * e * e * Math.sin(2 * m);
+}
+
+function solarDeclination(centuries) {
+  return Math.asin(Math.sin(obliquityCorrection(centuries)) * Math.sin(solarApparentLongitude(centuries)));
+}
+
+function solarApparentLongitude(centuries) {
+  return solarTrueLongitude(centuries) - (0.00569 + 0.00478 * Math.sin((125.04 - 1934.136 * centuries) * radians)) * radians;
+}
+
+function solarTrueLongitude(centuries) {
+  return solarGeometricMeanLongitude(centuries) + solarEquationOfCenter(centuries);
+}
+
+function solarGeometricMeanAnomaly(centuries) {
+  return (357.52911 + centuries * (35999.05029 - 0.0001537 * centuries)) * radians;
+}
+
+function solarGeometricMeanLongitude(centuries) {
+  var l = (280.46646 + centuries * (36000.76983 + centuries * 0.0003032)) % 360;
+  return (l < 0 ? l + 360 : l) / 180 * π;
+}
+
+function solarEquationOfCenter(centuries) {
+  var m = solarGeometricMeanAnomaly(centuries);
+  return (Math.sin(m) * (1.914602 - centuries * (0.004817 + 0.000014 * centuries))
+      + Math.sin(m + m) * (0.019993 - 0.000101 * centuries)
+      + Math.sin(m + m + m) * 0.000289) * radians;
+}
+
+function obliquityCorrection(centuries) {
+  return meanObliquityOfEcliptic(centuries) + 0.00256 * Math.cos((125.04 - 1934.136 * centuries) * radians) * radians;
+}
+
+function meanObliquityOfEcliptic(centuries) {
+  return (23 + (26 + (21.448 - centuries * (46.8150 + centuries * (0.00059 - centuries * 0.001813))) / 60) / 60) * radians;
+}
+
+function eccentricityEarthOrbit(centuries) {
+  return 0.016708634 - centuries * (0.000042037 + 0.0000001267 * centuries);
+}
+
+</script>

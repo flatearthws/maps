@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0;
+}
+
+.fill {
+  fill: #1795d1;
+}
+
+.graticule {
+  fill: none;
+  stroke: #ddd;
+  stroke-width: 1px;
+  stroke-opacity: 1;
+}
+
+.land {
+  fill: #fff ;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.route {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.point {
+  fill: black;
+  stroke: #000;
+  stroke-width: 4px;
+}
+</style>
+<select id="projection-menu"></select>
+<script src="//d3js.org/d3.v5.min.js"></script>
+<script src="//d3js.org/d3-geo-projection.v2.min.js"></script>
+<script src="//d3js.org/topojson.v2.min.js"></script>
+<script>
+var width = 960,
+    height = 500;
+
+// var projection = d3.geoAzimuthalEquidistant().rotate([0,0]);
+// var projection = d3.geoAzimuthalEquidistant().rotate([0,90]);
+// var projection = d3.geoAzimuthalEqualArea().rotate([0,-90]);
+// var projection = d3.geoAitoff();
+// var projection = d3.geoArmadillo();
+// var projection = d3.geoAlbers().scale(145).parallels([20, 50]);
+// var projection = d3.geoAugust().scale(60);
+// var projection = d3.geoBaker().scale(100);
+// var projection = d3.geoBertin1953();
+// var projection = d3.geoBoggs();
+// var projection = d3.geoBonne().scale(120).parallel(90);
+// var projection = d3.geoBromley();
+// var projection = d3.geoCollignon().scale(93);
+// var projection = d3.geoCraster();
+// var projection = d3.geoConicConformal();
+// var projection = d3.geoConicEquidistant();
+// var projection = d3.geoEckert1().scale(165);
+// var projection = d3.geoEckert2().scale(165);
+// var projection = d3.geoEckert3().scale(180);
+// var projection = d3.geoEckert4().scale(180);
+// var projection = d3.geoEckert5().scale(170);
+// var projection = d3.geoEckert6().scale(170);
+// var projection = d3.geoEisenlohr().scale(60);
+// var projection = d3.geoEquirectangular();
+// var projection = d3.geoFahey();
+// var projection = d3.geoGinzburg4();
+// var projection = d3.geoGinzburg5();
+// var projection = d3.geoHammer().scale(165);
+// var projection = d3.geoHill();
+// var projection = d3.geoHomolosine();
+// var projection = d3.geoKavrayskiy7();
+// var projection = d3.geoCylindricalEqualArea();
+// var projection = d3.geoLagrange().scale(120);
+// var projection = d3.geoLarrivee().scale(95);
+// var projection = d3.geoLaskowski().scale(120);
+// var projection = d3.geoLoximuthal();
+// var projection = d3.geoMercator().scale(490 / 2 / Math.PI);
+// var projection = d3.geoMiller().scale(100);
+// var projection = d3.geoMtFlatPolarParabolic();
+// var projection = d3.geoMtFlatPolarQuartic();
+// var projection = d3.geoMtFlatPolarSinusoidal();
+// var projection = d3.geoMollweide().scale(165);
+// var projection = d3.geoNaturalEarth();
+// var projection = d3.geoNellHammer();
+// var projection = d3.geoPolyconic().scale(100);
+// var projection = d3.geoRobinson();
+// var projection = d3.geoSinusoidal();
+// var projection = d3.geoSinuMollweide();
+// var projection = d3.geoVanDerGrinten().scale(75);
+// var projection = d3.geoVanDerGrinten4().scale(120);
+// var projection = d3.geoWagner4();
+// var projection = d3.geoWagner6();
+// var projection = d3.geoWagner7();
+// var projection = d3.geoWinkel3();
+// var projection = d3.geoStereographic();
+// var projection = d3.geoNaturalEarth1();
+var projection = d3.geoNaturalEarth2();
+// var projection = d3.geoTranverseMercator();
+// var projection = d3.geoGringortenQuincuncial();
+// var projection = d3.geoInterruptedMollweideHemispheres();
+// var projection = d3.geoInterruptedHomolosine();
+// var projection = d3.geoWiechel();
+
+
+// projection.rotate([0, 0]).center([0, 0]);
+
+function addRoute(r) {
+    svg.insert("path", ".route")
+        .datum(getLineString(r))
+        .attr("class", "route")
+        .attr("d", path);
+
+    svg.insert("path", ".point")
+        .datum(getMultiPoint(r))
+        .attr("class", "point")
+        .attr("d", path);
+}
+
+function getLineString(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getMultiPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPoint",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+var path = d3.geoPath(projection);
+var graticule = d3.geoGraticule()
+    .stepMinor([30,30])
+    .extentMinor([[-180,-90], [180,90]]);
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule")
+    .attr("d", path);
+d3.json("common/50m.json").then(function(world) {
+  svg.insert("path", ".graticule")
+      .datum(topojson.feature(world, world.objects.land))
+      .attr("class", "land")
+      .attr("d", path);
+
+  // addRoute([[0,0], [0,60], [120,60], [120,0], [0,0]]);
+  // addRoute([[0,0], [0,-60], [60,-60], [60,0], [0,0]]);
+  // addRoute([[0,0], [-120,0], [-120,-60], [0,-60], [0,0]]);
+  // addRoute([[0,0], [-60,0], [-60,60], [0,60], [0,0]]);
+
+  // addRoute([[120,0], [0,60]]);
+  // addRoute([[-120,0], [0,-60]]);
+
+  // addRoute([[120,60], [-60,60]]);
+  // addRoute([[60,-60], [-120,-60]]);
+
+  d3.json("common/locations.json").then(function(l) {
+      addRoute([l.adelaide, l.santiago]);
+      addRoute([l.northpole, l.london]);
+      // addRoute([l.jakarta, l.cairo]);
+      addRoute([l.losangeles, l.sydney]);
+      addRoute([l.tokyo, l.jayapura]);
+      addRoute([l.capetown, l.buenosaires]);
+      addRoute([l.newdelhi, l.anchorage]);
+      addRoute([l.auckland, l.bogota]);
+      // addRoute([l.lagos, l.recife]);
+      addRoute([l.saopaulo, l.cairo]);
+      addRoute([l.perth, l.johannesburg]);
+      addRoute([l.newyork, l.casablanca]);
+      addRoute([l.honolulu, l.beijing]);
+      addRoute([l.southpole, l.puntaarenas]);
+      addRoute([l.vancouver, l.reykjavik]);
+      addRoute([l.pontianak, l.libreville]);
+      addRoute([l.moscow, l.dubai]);
+  });
+
+
+});
+
+</script>

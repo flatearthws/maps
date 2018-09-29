@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css?family=Neucha" rel="stylesheet">
+<style>
+body {
+  background: #efe;
+  margin: 0;
+  padding: 0;
+  /*height: 500px;*/
+  /*position: relative;*/
+  /*width: 960px;*/
+}
+#projection-menu {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  /*display: none;*/
+}
+.stroke {
+  fill: none;
+  stroke: #000;
+  /*stroke: transparent;*/
+  stroke-width: 1px;
+}
+.fill {
+  /*fill: #1795d1;*/
+  /*fill: none;*/
+}
+#sphere {
+  /*fill: #1795d1;*/
+  fill: white;
+  /*fill: transparent;*/
+}
+.graticule {
+  fill: none;
+  stroke: #ddd;
+  stroke-width: 1px;
+  stroke-opacity: 1;
+}
+.land {
+  fill: #fff;
+}
+.ocean {
+  fill: #1795d1;
+  /*fill: white;*/
+}
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: .5px;
+}
+.route {
+  fill: none;
+  stroke: #555;
+  stroke-width: 2px;
+}
+
+.point {
+  fill: #555;
+  stroke: #555;
+  stroke-width: 4px;
+}
+
+.label {
+  text-align: center;
+  text-anchor: middle;
+  font-size: 3em;
+  font-family: Neucha;
+}
+</style>
+<select id="projection-menu"></select>
+<script src="//d3js.org/d3.v5.min.js"></script>
+<script src="//d3js.org/d3-geo-projection.v2.min.js"></script>
+<script src="//d3js.org/topojson.v2.min.js"></script>
+<script>
+function addRoute(r) {
+    svg.insert("path", ".route")
+        .datum(getLineString(r))
+        .attr("class", "route")
+        .attr("d", path);
+
+    svg.insert("path", ".point")
+        .datum(getMultiPoint(r))
+        .attr("class", "point")
+        .attr("d", path);
+}
+
+function getLineString(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getMultiPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPoint",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+var
+    width = 960,
+    height = 500,
+    // width = 1080,
+    // height = 692,
+    // anim = 250*3,
+    // wait = 2000 //666*3
+    // anim = 200,
+    // wait = 666
+    anim = 200 * 3,
+    wait = 2000
+;
+var options = [
+  {name: "Orthographic", projection: d3.geoOrthographic().clipAngle(90)},
+  {name: "Airy", projection: d3.geoAiry()},
+  {name: "Aitoff", projection: d3.geoAitoff()},
+  {name: "Azimuthal Equal Area (North Pole)", projection: d3.geoAzimuthalEqualArea(), clip: true},
+  {name: "Azimuthal Equidistant (North Pole)", projection: d3.geoAzimuthalEquidistant(), clip: true},
+  // {name: "Albers", projection: d3.geoAlbers().scale(145).parallels([20, 50])},
+  // {name: "Armadillo", projection: d3.geoArmadillo(), clip: true},
+  {name: "August", projection: d3.geoAugust().scale(60)},
+  {name: "Baker", projection: d3.geoBaker().scale(100)},
+  {name: "Berghaus", projection: d3.geoBerghaus(), clip: true},
+  // {name: "Bertin 1953", projection: d3.geoBertin1953().scale(100)},
+  {name: "Boggs", projection: d3.geoBoggs()},
+  {name: "Interrupted Boggs", projection: d3.geoInterruptedBoggs(), clip: true},
+  {name: "Bonne", projection: d3.geoBonne().scale(100)},
+  {name: "Bottomley", projection: d3.geoBottomley()},
+  {name: "Bromley", projection: d3.geoBromley()},
+  {name: "Collignon", projection: d3.geoCollignon().scale(93)},
+  {name: "Conic Conformal", projection: d3.geoConicConformal(), clip: true},
+  {name: "Conic Equal Area", projection: d3.geoConicEqualArea(), clip: true},
+  {name: "Conic Equidistant", projection: d3.geoConicEquidistant(), clip: true},
+  {name: "Craig", projection: d3.geoCraig()},
+  {name: "Craster Parabolic", projection: d3.geoCraster()},
+  {name: "Cylindrical Equal-Area", projection: d3.geoCylindricalEqualArea()},
+  {name: "Cylindrical Stereographic", projection: d3.geoCylindricalStereographic()},
+  {name: "Eckert I", projection: d3.geoEckert1().scale(165)},
+  {name: "Eckert II", projection: d3.geoEckert2().scale(165)},
+  {name: "Eckert III", projection: d3.geoEckert3().scale(180)},
+  {name: "Eckert IV", projection: d3.geoEckert4().scale(180)},
+  {name: "Eckert V", projection: d3.geoEckert5().scale(170)},
+  {name: "Eckert VI", projection: d3.geoEckert6().scale(170)},
+  {name: "Eisenlohr", projection: d3.geoEisenlohr().scale(60)},
+  {name: "Equirectangular (Plate Carrée)", projection: d3.geoEquirectangular()},
+  {name: "Fahey", projection: d3.geoFahey()},
+  {name: "Foucaut", projection: d3.geoFoucaut()},
+  {name: "Gilbert", projection: d3.geoGilbert()},
+  {name: "Gingery", projection: d3.geoGingery(), clip: true},
+  {name: "Ginzburg IV", projection: d3.geoGinzburg4()},
+  {name: "Ginzburg V", projection: d3.geoGinzburg5()},
+  {name: "Ginzburg VI", projection: d3.geoGinzburg6()},
+  {name: "Ginzburg VIII", projection: d3.geoGinzburg8()},
+  {name: "Ginzburg IX", projection: d3.geoGinzburg9()},
+  {name: "Gnomonic", projection: d3.geoGnomonic()},
+  {name: "Gringorten", projection: d3.geoGringorten()},
+  {name: "Gringorten Quincuncial", projection: d3.geoGringortenQuincuncial()},
+  {name: "Guyou", projection: d3.geoGuyou()},
+  {name: "Hammer", projection: d3.geoHammer().scale(165)},
+  {name: "Hammer Retroazimuthal", projection: d3.geoHammerRetroazimuthal(), clip: true},
+  {name: "Healpix", projection: d3.geoHealpix(), clip: true},
+  {name: "Hill", projection: d3.geoHill().scale(150)},
+  {name: "Homolosine", projection: d3.geoHomolosine()},
+  {name: "Interrupted Homolosine", projection: d3.geoInterruptedHomolosine(), clip: true},
+  {name: "Hyper Elliptical", projection: d3.geoHyperelliptical()},
+  {name: "Kavrayskiy VII", projection: d3.geoKavrayskiy7()},
+  {name: "Lagrange", projection: d3.geoLagrange().scale(120)},
+  {name: "Larrivée", projection: d3.geoLarrivee().scale(95)},
+  {name: "Laskowski", projection: d3.geoLaskowski().scale(120)},
+  // {name: "Littrow", projection: d3.geoLittrow()},
+  {name: "Loximuthal", projection: d3.geoLoximuthal()},
+  {name: "Mercator", projection: d3.geoMercator().scale(490 / 2 / Math.PI)},
+  {name: "Miller", projection: d3.geoMiller().scale(100)},
+  {name: "Mollweide", projection: d3.geoMollweide().scale(165)},
+  {name: "Interrupted Mollweide", projection: d3.geoInterruptedMollweide(), clip: true},
+  {name: "Interrupted Mollweide Hemispheres", projection: d3.geoInterruptedMollweideHemispheres(), clip: true},
+  {name: "McBryde–Thomas Flat-Polar Parabolic", projection: d3.geoMtFlatPolarParabolic()},
+  {name: "McBryde–Thomas Flat-Polar Quartic", projection: d3.geoMtFlatPolarQuartic()},
+  {name: "McBryde–Thomas Flat-Polar Sinusoidal", projection: d3.geoMtFlatPolarSinusoidal()},
+  {name: "Natural Earth 1", projection: d3.geoNaturalEarth1()},
+  {name: "Natural Earth 2", projection: d3.geoNaturalEarth2()},
+  {name: "Nell–Hammer", projection: d3.geoNellHammer()},
+  {name: "Patterson", projection: d3.geoPatterson()},
+  {name: "Peirce Quincuncial", projection: d3.geoPeirceQuincuncial()},
+  {name: "Polyconic", projection: d3.geoPolyconic().scale(100)},
+  {name: "Polyhedral Butterfly", projection: d3.geoPolyhedralButterfly(), clip: true},
+  {name: "Polyhedral Collignon", projection: d3.geoPolyhedralCollignon(), clip: true},
+  {name: "Polyhedral Waterman", projection: d3.geoPolyhedralWaterman(), clip: true},
+  {name: "Rectangular Polyconic", projection: d3.geoRectangularPolyconic().scale(100)},
+  {name: "Robinson", projection: d3.geoRobinson()},
+  {name: "Sinusoidal", projection: d3.geoSinusoidal()},
+  {name: "Interrupted Sinusoidal", projection: d3.geoInterruptedSinusoidal(), clip: true},
+  {name: "Sinu-Mollweide", projection: d3.geoSinuMollweide()},
+  {name: "Interrupted Sinu-Mollweide", projection: d3.geoInterruptedSinuMollweide(), clip: true},
+  {name: "Stereographic", projection: d3.geoStereographic()},
+  {name: "Times", projection: d3.geoTimes()},
+  {name: "Transverse Mercator", projection: d3.geoTransverseMercator()},
+  {name: "van der Grinten", projection: d3.geoVanDerGrinten().scale(75)},
+  {name: "van der Grinten II", projection: d3.geoVanDerGrinten2().scale(75)},
+  {name: "van der Grinten III", projection: d3.geoVanDerGrinten3().scale(75)},
+  {name: "van der Grinten IV", projection: d3.geoVanDerGrinten4().scale(120)},
+  {name: "Wagner IV", projection: d3.geoWagner4()},
+  {name: "Wagner VI", projection: d3.geoWagner6()},
+  {name: "Wagner VII", projection: d3.geoWagner7()},
+  {name: "Wiechel", projection: d3.geoWiechel()},
+  {name: "Winkel Tripel", projection: d3.geoWinkel3()},
+  {name: "Orthographic", projection: d3.geoOrthographic().clipAngle(90)},
+];
+options.forEach(function(o) {
+  if (o.name.startsWith("Polyhedral")) {
+    // o.projection.rotate([0, 0]).center([0, 60]);
+    o.projection.scale(100);
+    return;
+  }
+  if (o.name.startsWith("Peirce") || o.name.startsWith("Gingery")) {
+    o.projection.rotate([0,-90]);
+    return;
+  }
+  if (o.name.startsWith("Azimuthal")) {
+    o.projection.rotate([0,-90]);
+    return;
+  }
+  o.projection.rotate([0, 0]).center([0, 0]);
+  if (o.name == "Armadillo") {
+    o.projection.parallel(20);
+  }
+});
+console.log(options);
+var //interval = setInterval(loop, 750),
+    i = 0,
+    n = options.length - 1;
+
+
+var canvas = document.createElement("canvas");
+canvas.width = width;
+canvas.height = height;
+var context = canvas.getContext('2d');
+
+
+var projection = options[i].projection;
+var name = options[i].name;
+var graticule = d3.geoGraticule()
+  .stepMinor([30,30])
+  .extentMinor([[-180,-90], [180,90]])
+;
+
+var path = d3.geoPath().projection(projection);
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+// var background = svg.append("rect")
+//   .attr("width", width)
+//   .attr("height", height)
+//   .attr("fill", "#eee");
+var defs = svg.append("defs")
+defs.append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+defs.append("clipPath")
+    .attr("id", "clip")
+    .append("use")
+    .attr("xlink:href", "#sphere");
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule")
+    // .attr("clip-path", "url(#clip)")
+    .attr("d", path);
+
+d3.json("common/geojson/ne_110m_wgs84_bounding_box.geojson").then(function(world) {
+  svg.insert("path", ".graticule")
+      .datum(world)
+      .attr("class", "bbox")
+      // .attr("clip-path", "url(#clip)")
+      .attr("d", path);
+  d3.json("common/geojson/ne_110m_ocean.geojson").then(function(world) {
+    svg.insert("path", ".graticule")
+        .datum(world)
+        .attr("class", "ocean")
+        // .attr("clip-path", "url(#clip)")
+        .attr("d", path);
+    d3.json("common/geojson/ne_110m_land.geojson").then(function(world) {
+      svg.insert("path", ".graticule")
+          .datum(world)
+          .attr("class", "land")
+          // .attr("clip-path", "url(#clip)")
+          .attr("d", path);
+      d3.json("common/locations.json").then(function(l) {
+          addRoute([l.adelaide, l.santiago]);
+          addRoute([l.northpole, l.london]);
+          // addRoute([l.jakarta, l.cairo]);
+          addRoute([l.losangeles, l.sydney]);
+          addRoute([l.tokyo, l.jayapura]);
+          addRoute([l.capetown, l.buenosaires]);
+          addRoute([l.newdelhi, l.anchorage]);
+          addRoute([l.auckland, l.bogota]);
+          // addRoute([l.lagos, l.recife]);
+          addRoute([l.saopaulo, l.cairo]);
+          addRoute([l.perth, l.johannesburg]);
+          addRoute([l.newyork, l.casablanca]);
+          addRoute([l.honolulu, l.beijing]);
+          addRoute([l.southpole, l.puntaarenas]);
+          addRoute([l.vancouver, l.reykjavik]);
+          addRoute([l.pontianak, l.libreville]);
+          addRoute([l.moscow, l.dubai]);
+          svg.insert("text")
+              .attr("class", "label")
+              // .attr("transform", function(d) { return "translate(" + projection(i) + ")"; })
+              .attr("y", height - 150)
+              .attr("dy", "2em")
+              .attr("x", width / 2)
+              .text(name)
+          ;
+
+
+      });
+    });
+  });
+});
+
+var menu = d3.select("#projection-menu")
+    .on("change", change);
+menu.selectAll("option")
+    .data(options)
+  .enter().append("option")
+    .text(function(d) { return d.name; });
+
+var doloop = true;
+update(options[0])
+
+
+function loop() {
+  // var j = Math.floor(Math.random() * n);
+  // menu.property("selectedIndex", i = j + (j >= i));
+  // i >= n ? i=0 : i++;
+  if (i >= n) {
+    return;
+  } else {
+    i++;
+  }
+  // menu.property("selectedIndex", i);
+  update(options[i]);
+}
+function change() {
+  // clearInterval(interval);
+  doloop = false;
+  update(options[this.selectedIndex]);
+}
+function update(option) {
+  if (doloop) {
+    d3.timeout(loop, wait)
+  }
+
+  // projection = option.projection;
+  // path.projection(option.projection);
+  if (option.name.startsWith("Polyhedral") || name.startsWith("Polyhedral") ||
+    option.name.startsWith('Azimuthal') || name.startsWith('Azimuthal') ||
+    option.name.startsWith('Gnomonic') || name.startsWith('Gnomonic')) {
+    svg.selectAll("path").interrupt().transition()
+        .duration(anim)
+        .ease(d3.easeExpInOut)
+        .attr("d", d3.geoPath(option.projection))
+    ;
+  } else {
+    svg.selectAll("path").interrupt().transition()
+        .duration(anim)
+        .ease(d3.easeExpInOut)
+        .attrTween("d", projectionTween2(projection, projection = option.projection))
+    ;
+  }
+
+  svg.selectAll('.label').interrupt().transition()
+    .duration(anim)
+    .ease(d3.easeExpInOut)
+    .style("opacity", 0)
+    .remove()
+  ;
+  svg.insert("text")
+      .attr("class", "label")
+      .style("opacity", 0)
+      .text(option.name)
+      .attr("y", height - 150)
+      .attr("dy", "2em")
+      .attr("x", width / 2)
+    .interrupt().transition()
+    .duration(anim)
+    .ease(d3.easeExpInOut)
+    .style("opacity", 1)
+  ;
+
+  if ("clip" in option) {
+    svg.selectAll("path").attr("clip-path", "url(#clip)");
+  } else {
+    svg.selectAll("path").attr("clip-path", null);
+  }
+  name = option.name;
+}
+function projectionTween(projection0, projection1) {
+  return function(d) {
+    var t = 0;
+    var projection = d3.geoProjection(project)
+        .scale(1)
+        .translate([width / 2, height / 2]);
+    var path = d3.geoPath(projection);
+    function project(λ, φ) {
+      λ *= 180 / Math.PI, φ *= 180 / Math.PI;
+      var p0 = projection0([λ, φ]), p1 = projection1([λ, φ]);
+      return [(1 - t) * p0[0] + t * p1[0], (1 - t) * -p0[1] + t * -p1[1]];
+    }
+    return function(_) {
+      t = _;
+      return path(d);
+    };
+  };
+}
+
+function projectionTween2(projection0, projection1) {
+  return function(d) {
+    var t = 0;
+    var projection = d3.geoProjection(project)
+        .scale(1)
+        .translate([width / 2, height / 2]);
+    var path = d3.geoPath(projection);
+    var pathf = d3.geoPath(projection1);
+    function project(λ, φ) {
+      λ *= 180 / Math.PI, φ *= 180 / Math.PI;
+      var p0 = projection0([λ, φ]), p1 = projection1([λ, φ]);
+      return [(1 - t) * p0[0] + t * p1[0], (1 - t) * -p0[1] + t * -p1[1]];
+    }
+    return function(_) {
+      t = _;
+      if (t > 0.999) {
+        return pathf(d);
+      }
+      // if (t<0.1) {
+      //   t = 0.1;
+      // }
+      return path(d);
+    };
+  };
+}
+
+function projectionTweenInstant(projection0, projection1) {
+  return function(d) {
+    var path = d3.geoPath(projection1);
+    return function(_) {
+      t = _;
+      return path(d);
+    };
+  };
+}
+</script>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css?family=Neucha" rel="stylesheet">
+<style>
+body {
+  background: #efe;
+  margin: 0;
+  padding: 0;
+  /*height: 500px;*/
+  /*position: relative;*/
+  /*width: 960px;*/
+}
+#projection-menu {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  /*display: none;*/
+}
+.stroke {
+  fill: none;
+  stroke: #000;
+  /*stroke: transparent;*/
+  stroke-width: 1px;
+}
+.fill {
+  /*fill: #1795d1;*/
+  /*fill: none;*/
+}
+#sphere {
+  /*fill: #1795d1;*/
+  fill: white;
+  /*fill: transparent;*/
+}
+.graticule {
+  fill: none;
+  stroke: #ddd;
+  stroke-width: 1px;
+  stroke-opacity: 1;
+}
+.land {
+  fill: #fff;
+}
+.ocean {
+  fill: #1795d1;
+  /*fill: white;*/
+}
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: .5px;
+}
+.route {
+  fill: none;
+  stroke: #555;
+  stroke-width: 2px;
+}
+
+.point {
+  fill: #555;
+  stroke: #555;
+  stroke-width: 4px;
+}
+
+.label {
+  text-align: center;
+  text-anchor: middle;
+  font-size: 3em;
+  font-family: Neucha;
+}
+</style>
+<select id="projection-menu"></select>
+<script src="//d3js.org/d3.v5.min.js"></script>
+<script src="//d3js.org/d3-geo-projection.v2.min.js"></script>
+<script src="//d3js.org/topojson.v2.min.js"></script>
+<script>
+function addRoute(r) {
+    svg.insert("path", ".route")
+        .datum(getLineString(r))
+        .attr("class", "route")
+        .attr("d", path);
+
+    svg.insert("path", ".point")
+        .datum(getMultiPoint(r))
+        .attr("class", "point")
+        .attr("d", path);
+}
+
+function getLineString(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+function getMultiPoint(i) {
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPoint",
+                    "coordinates": i
+                }
+            }
+        ]
+    };
+}
+
+var
+    width = 960,
+    height = 500,
+    // width = 1080,
+    // height = 692,
+    // anim = 250*3,
+    // wait = 2000 //666*3
+    // anim = 200,
+    // wait = 666
+    anim = 200 * 3,
+    wait = 2000
+;
+
+
+var projection1 = d3.geoMercator()
+  .scale(490 / 2 / Math.PI)
+  .rotate([0, 0])
+  .center([0, 0])
+  // .clipExtent([[480 - 150 * Math.PI, 100], [480 + 150 * Math.PI, 860]]);
+;
+var projection2 = d3.geoOrthographic()
+  // .clipAngle(90)
+  // .rotate([0, 0])
+  // .center([0, 0])
+;
+
+var graticule = d3.geoGraticule()
+  .stepMinor([30,30])
+  .extentMinor([[-180,-90], [180,90]])
+;
+var path = d3.geoPath().projection(projection1);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+// var background = svg.append("rect")
+//   .attr("width", width)
+//   .attr("height", height)
+//   .attr("fill", "#eee");
+var defs = svg.append("defs")
+defs.append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+defs.append("clipPath")
+    .attr("id", "clip")
+    .append("use")
+    .attr("xlink:href", "#sphere");
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule")
+    // .attr("clip-path", "url(#clip)")
+    .attr("d", path);
+
+d3.json("common/geojson/ne_110m_wgs84_bounding_box.geojson").then(function(world) {
+  // svg.insert("path", ".graticule")
+  //     .datum(world)
+  //     .attr("class", "bbox")
+  //     // .attr("clip-path", "url(#clip)")
+  //     .attr("d", path);
+  d3.json("common/geojson/ne_110m_ocean.geojson").then(function(world) {
+    svg.insert("path", ".graticule")
+        .datum(world)
+        .attr("class", "ocean")
+        // .attr("clip-path", "url(#clip)")
+        .attr("d", path);
+    d3.json("common/geojson/ne_110m_land.geojson").then(function(world) {
+      svg.insert("path", ".graticule")
+          .datum(world)
+          .attr("class", "land")
+          // .attr("clip-path", "url(#clip)")
+          .attr("d", path);
+      update()
+    });
+  });
+});
+
+function update() {
+  svg.selectAll("path").transition()
+      .duration(3000)
+      .attrTween("d", projectionTween(projection1, projection2));
+}
+
+function projectionTween(projection0, projection1) {
+  return function(d) {
+    var t = 0;
+    var projection = d3.geoProjection(project)
+        .scale(1)
+        .translate([width / 2, height / 2]);
+    var path = d3.geoPath(projection);
+    function project(λ, φ) {
+      λ *= 180 / Math.PI, φ *= 180 / Math.PI
+      var distance = d3.geoDistance([0,0],[λ, φ]);
+      distance *= 180 / Math.PI;
+      // console.log([λ, φ]);
+      var p0 = projection0([λ, φ])
+      var p1 = [0,0];
+      // console.log(distance);
+      if (distance < 90) {
+        p1 = projection1([λ, φ]);
+      }
+      if (isNaN(p0[0])) p0[0] = 0;
+      if (isNaN(p1[0])) p1[0] = 0;
+      if (isNaN(p0[1])) p0[1] = 0;
+      if (isNaN(p1[1])) p1[1] = 0;
+      if (p0[0] === Number.NEGATIVE_INFINITY) p0[0] = -9999;
+      if (p1[0] === Number.NEGATIVE_INFINITY) p1[0] = -9999;
+      if (p0[1] === Number.NEGATIVE_INFINITY) p0[1] = -9999;
+      if (p1[1] === Number.NEGATIVE_INFINITY) p1[1] = -9999;
+      if (p0[0] === Number.POSITIVE_INFINITY) p0[0] = 9999;
+      if (p1[0] === Number.POSITIVE_INFINITY) p1[0] = 9999;
+      if (p0[1] === Number.POSITIVE_INFINITY) p0[1] = 9999;
+      if (p1[1] === Number.POSITIVE_INFINITY) p1[1] = 9999;
+      return [(1 - t) * p0[0] + t * p1[0], (1 - t) * -p0[1] + t * -p1[1]];
+    }
+    return function(_) {
+      t = _;
+      return path(d);
+    };
+  };
+}
+
+</script>
