@@ -152,7 +152,7 @@ function getPoint(i) {
 
 
 
-d3.json("/common/50m.json", function(error, world) {
+d3.json("common/50m.json", function(error, world) {
   if (error) throw error;
 
   svg.append("path")

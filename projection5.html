@@ -140,7 +140,7 @@ svg.append("path")
     .attr("class", "graticule")
     .attr("d", path);
 
-d3.json("/common/world-110m.json", function(error, world) {
+d3.json("common/world-110m.json", function(error, world) {
   if (error) throw error;
 console.log(world);
   svg.insert("path", ".graticule")
